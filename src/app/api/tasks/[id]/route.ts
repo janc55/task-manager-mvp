@@ -11,10 +11,11 @@ const updateTaskSchema = z.object({
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }  // Nueva firma: params como Promise
 ) {
   // SRP: Solo actualiza estado (UPDATE), auto-actualiza updatedAt
   try {
+    const params = await context.params;  // Await para desestructurar async
     const id = parseInt(params.id, 10);
     if (isNaN(id)) {
       return NextResponse.json({ error: 'ID inválido' }, { status: 400 });
@@ -36,7 +37,7 @@ export async function PUT(
     return NextResponse.json(updatedTask);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: error.issues }, { status: 400 }); // Fix: .issues
+      return NextResponse.json({ error: error.issues }, { status: 400 });
     }
     console.error('Error updating task:', error);
     return NextResponse.json({ error: 'Error al actualizar tarea' }, { status: 500 });
